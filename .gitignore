@@ -30,6 +30,8 @@ desktop.ini
 # Pakiety / archiwa oddawcze (lokalne)
 *.zip
 !instrukcje/**
+/instrukcje/*
+instrukcje/*
 
 # Logi i cache
 *.log
