@@ -1,0 +1,21 @@
+@page
+@model lab4.Pages.UploadModel
+@{
+    ViewData["Title"] = "Upload";
+}
+
+<h1>Upload</h1>
+
+<form asp-page="Upload" enctype="multipart/form-data" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <input class="form-control" asp-for="Upload" type="file" accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*"/>
+    </div>
+
+    <input class="form-control" type="submit" value="Upload"/>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

@@ -1,0 +1,7 @@
+@page "{image}"
+@model lab4.Pages.SingleModel
+@{
+    ViewData["Title"] = Model.Image;
+}
+
+<img src="~/images/@Model.Image" class="img-fluid" alt="@Model.Image"/>

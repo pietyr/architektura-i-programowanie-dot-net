@@ -1,0 +1,47 @@
+# Build
+**/bin/
+**/obj/
+**/out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.rsuser
+*.dbmdl
+*.jfm
+
+# VS Code (lokalne)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Pakiety / archiwa oddawcze (lokalne)
+*.zip
+!instrukcje/**
+
+# Logi i cache
+*.log
+*.cache
+project.lock.json
+artifacts/
+
+# Secrets
+.env
+.env.*
+**/appsettings.*.local.json
+
+# Lab4 – uploady lokalne (zostaw katalog)
+lab4/wwwroot/images/*
+!lab4/wwwroot/images/.gitkeep

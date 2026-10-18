@@ -1,0 +1,41 @@
+---
+description: Konwencje i pułapki przy laboratoriach AIPWN (.NET / Rider)
+alwaysApply: true
+---
+
+# AIPWN – laboratoria .NET
+
+## Środowisko
+- Instrukcje mają warianty IDE (`vs2026` / `vscode` / `rider`) – korzystamy z wariantu **Rider** (Linux).
+- Preferuj `dotnet` z `~/.dotnet` w PATH. Profil uruchamiania: **http** (bez HTTPS na labach).
+- Oddajemy **źródła** (zip bez `bin/`/`obj/`), nie zbudowaną aplikację.
+
+## Typy i null-safety (częste -0.5 / -1.5 pkt)
+- Kwoty pieniężne i kursy walut: **`decimal`**, nigdy `double`/`float`.
+- Unikaj ostrzeżeń nullable (CS8618 / CS8601 / zielone podkreślenia):
+  - `required` albo `= string.Empty` na stringach w modelach
+  - `Deserialize(...) ?? new List<T>()` / `FirstOrDefault` + null-check
+  - nie zakładaj, że `Console.ReadLine()` / XML / JSON zawsze zwróci wartość
+
+## Razor / MVC
+- Wartości wyliczane (daty, klasy CSS, przeliczenia) przygotowuj w bloku `@{ }`, nie inline w znacznikach.
+- Po **Add** i **Delete**: `RedirectToAction` do listy elementów.
+- `Max()` / podobne na pustej kolekcji – osobna ścieżka (np. pierwsze Id = 1).
+- Serwis domenowy nie zwraca HTTP; kontroler mapuje wynik (np. `bool` → `NotFound()`).
+- W nagłówku (`_Layout`) link do listy głównych elementów laboratorium.
+- Cena/formatowanie zgodne z kulturą, jeśli instrukcja pokazuje polski format.
+
+## Sortowanie i prezentacja danych
+- Gdy instrukcja wymaga sortowania (np. słodkie owoce) – sprawdzaj **kierunek** (rosnąco/malejąco) i **klucz**.
+- `ToString()` / formaty wyjścia trzymaj **dokładnie** jak w zadaniu.
+
+## Walidacja logiki (lekcje z lab1/lab2)
+- Liczniki prób / stan gry zwiększaj dopiero po poprawnej walidacji wejścia.
+- Osobne komunikaty dla osobnych przypadków brzegowych (zakres, puste imię → „Anonim” itd.).
+- Nie kopiuj ślepo snippeta z instrukcji, jeśli prowadzący w uwagach wymaga inaczej (np. `decimal` zamiast `double` w przykładzie).
+
+## Lab4 – upload / Magick.NET
+- Zapis na dysk: metody **async** (`WriteAsync`, `CopyToAsync` itd.).
+- Upload optymalnie: **jeden** zapis wyniku (strumień → Magick → dysk), bez pośredniego zapisu „surowego” pliku.
+- Znak wodny ładuj **raz** (singleton / cache w pamięci), nie z dysku przy każdym uploadzie; przy Composite używaj klona.
+- Walidacja rozmiaru (np. max 1 MB) przed przetwarzaniem; błędy przez `ModelState` + `asp-validation-summary`.

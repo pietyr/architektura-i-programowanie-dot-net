@@ -1,0 +1,18 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <p class="text-start">
+        <a asp-page="Upload">Upload new file...</a>
+    </p>
+
+    @foreach (var item in Model.Images)
+    {
+        <div class="mb-3">
+            <partial name="_Image" model="item"/>
+        </div>
+    }
+</div>

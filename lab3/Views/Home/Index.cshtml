@@ -1,0 +1,13 @@
+﻿@using System.Globalization
+@{
+    ViewData["Title"] = "Home Page";
+    var longDate = DateTime.Now.ToString("D", CultureInfo.GetCultureInfo("pl-PL"));
+    var random = ViewData["random"] as double? ?? 0.0;
+    var randomCssClass = random > 0.5 ? "bg-danger text-white" : string.Empty;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>@longDate</p>
+    <p class="@randomCssClass">@random</p>
+</div>
