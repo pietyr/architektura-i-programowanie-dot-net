@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorium 5. Tworzenie aplikacji internetowej korzystającej z bazy danych oraz mechanizmu ORM – AIPWN Viewer</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/default.min.css">
+
+    <style>
+        body {
+            padding-top: 4.5rem;
+        }
+        /* Navigation styles */
+        .section-nav {            
+            border-radius: 0.5rem;
+            padding: 1rem 1rem 1rem 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            max-width: 260px;
+        }
+        .section-nav .nav-link {
+            color: #495057;
+            padding: 0.25rem 0;
+            transition: color 0.2s;
+        }
+        .section-nav .nav-link.active, .section-nav .nav-link:hover {
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        @media (min-width: 992px) {
+            .container.flex-row {
+                flex-direction: row !important;
+            }
+            .section-nav {
+                position: fixed;
+                top: 5.5rem;
+                left: 2rem;
+                max-height: 80vh;
+                overflow-y: auto;
+                z-index: 1030;
+            }
+            .main-content {
+                margin-left: 300px;
+                max-width: 75%;
+            }
+        }
+        @media (max-width: 991.98px) {
+            .container.flex-row {
+                flex-direction: column !important;
+            }
+            .section-nav {
+                position: static;
+                max-width: 100%;
+                margin-bottom: 1.5rem;
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        @media (max-width: 575.98px) {
+            .container.flex-row {
+                flex-direction: column !important;
+            }
+            .section-nav {
+                position: static;
+                max-width: 100%;
+                margin-bottom: 1.5rem;
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        pre code {
+            padding: 1rem;
+            display: block;
+            overflow-x: auto;
+        }
+        figure {
+            display: table;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        figcaption {
+            margin-top: 0.5rem;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: gray;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .code-block-wrapper {
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 10;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.9rem;            
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }        
+        .copy-btn.copied {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-color: #badbcc;
+        }
+
+        .variant {
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top border-bottom">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">AIPWN Viewer</a>
+        <button class="btn btn-outline-secondary ms-auto" id="toggleDarkMode">🌙</button>
+    </div>
+</nav>
+
+<div class="container mt-4 d-flex flex-row">
+    <nav class="section-nav bg-secondary-subtle" aria-label="Section navigation">
+<ul class="nav flex-column">
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-1-generowanie-aplikacji-mvc-i-dodawanie-zależności">Zadanie 5.1. Generowanie aplikacji MVC i dodawanie zależności</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-2-tworzenie-modelu-danych">Zadanie 5.2. Tworzenie modelu danych</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-3-sekrety-i-połączenie-do-bazy-danych">Zadanie 5.3. Sekrety i połączenie do bazy danych</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-4-generowanie-kontrolera">Zadanie 5.4. Generowanie kontrolera</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-5-zmiana-formy-wprowadzania-danych">Zadanie 5.5. Zmiana formy wprowadzania danych</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-6-zmiana-formy-wyświetlania-danych">Zadanie 5.6. Zmiana formy wyświetlania danych</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-7-dodawanie-hiperłączy">Zadanie 5.7. Dodawanie hiperłączy</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-8-wyświetlanie-zwiastuna-jako-ramki-wewnętrznej">Zadanie 5.8. Wyświetlanie zwiastuna jako ramki wewnętrznej</a></li>
+  <li class="nav-item"><a class="nav-link" href="#zadanie-5-9-top-film">Zadanie 5.9. Top film</a></li>
+</ul>
+</nav>
+
+    <div class="main-content flex-grow-1">
+        <h1>Laboratorium 5. Tworzenie aplikacji internetowej korzystającej z bazy danych oraz mechanizmu ORM</h1>
+<div class="lab-target"><strong>Cel laboratorium: </strong>
+<p>Celem laboratorium jest nauka wykorzystania platformy Entity Framework
+oraz generatorów kodu do automatycznego tworzenia aplikacji typu CRUD.</p>
+</div>
+<div class="lab-points alert alert-primary"><strong>Liczba punktów możliwych do uzyskania: </strong>
+<p>9 punktów</p>
+</div>
+<div class="lab-topics"><strong>Zakres tematyczny zajęć: </strong>
+<ul>
+<li>Generowanie aplikacji MVC i obsługa zależności,</li>
+<li>Tworzenie i wykorzystanie <code>DbContext</code>,</li>
+<li>Wykorzystanie mechanizmu sekretów,</li>
+<li>Generowanie kontrolera opartego o <code>DbContext</code>,</li>
+<li>Modyfikacje widoków, szablony wyświetlania i edycji.</li>
+</ul>
+</div>
+<div class="lab-questions"><strong>Pytania kontrolne: </strong>
+<ol>
+<li>Czym są zależności (dependencies) w dużych systemach
+    informatycznych?</li>
+<li>Do czego służą biblioteki typu ORM?</li>
+<li>W jaki sposób prezentowane są dane słownikowe w HTML?</li>
+</ol>
+</div>
+<h2 id="zadanie-5-1-generowanie-aplikacji-mvc-i-dodawanie-zależności">Zadanie 5.1. Generowanie aplikacji MVC i dodawanie zależności</h2>
+<p>Utwórz nową aplikację opartą o podejście MVC (korzystającą z szablonu
+„ASP.NET Core Web App (Model-View-Controller)"), tak samo jak w
+Laboratorium 3. Należy do niej dodać zależności -- zewnętrzne
+biblioteki, które posłużą do komunikacji z systemem baz danych.</p>
+<div class="variant vs2026 bg-primary-subtle">
+<p>Kliknij prawym przyciskiem myszy na projekcie i wybierz opcję „Manage
+NuGet Packages".</p>
+<figure><img alt="Rys 5.1. Opcja zarządzania pakietami NuGet" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image39.png"/><figcaption>Rys 5.1. Opcja zarządzania pakietami NuGet</figcaption></figure>
+<p>Uruchomi się okno przeglądarki pakietów. Wybierz zakładkę „Browse" i
+uzyskasz dostęp do biblioteki pakietów NuGet.</p>
+<figure><img alt="Rys 5.2. Okno biblioteki pakietów NuGet" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image40.png"/><figcaption>Rys 5.2. Okno biblioteki pakietów NuGet</figcaption></figure>
+<p>Teraz możesz za pomocą wyszukiwarki znaleźć poszukiwaną bibliotekę i po
+najechaniu kursorem na nią wybrać opcję dodania do projektu lub kliknąć
+na pozycję i skorzystać z panelu po prawej stronie do oceny biblioteki i
+jej ewentualnej instalacji.</p>
+<figure><img alt="Rys 5.3. Informacje o bibliotece i przyciski instalacji" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image41.png"/><figcaption>Rys 5.3. Informacje o bibliotece i przyciski instalacji</figcaption></figure>
+<p>Zainstaluj w ten sposób bibliotekę <code>Microsoft.EntityFrameworkCore.Sqlite</code>
+w wersji 10.0.x.</p>
+<p>Możesz też, alternatywnie, używać narzędzi konsolowych w samym Visual
+Studio -- kliknij prawym przyciskiem myszy na projekcie i wybierz opcję
+„Open in Terminal", a w uruchomionym oknie Terminala możesz korzystać z
+narzędzi linii komend i na przykład komendy:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 10.0.*
+</code></pre></div>
+<p>Która również spowoduje dodanie biblioteki do projektu.</p>
+</div>
+<div class="variant vscode bg-secondary-subtle">
+<p>Przejdź do głównego folderu swojej aplikacji i wydaj komendę:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 10.0.*
+</code></pre></div>
+</div>
+<div class="variant rider bg-success-subtle">
+<p>W panelu zarządzania zależnościami NuGet, dostępnym po kliknięciu opcji Manage
+NuGet Packages w menu kontekstowym folderu Dependencies wyszukaj i zainstaluj
+bibliotekę <code>Microsoft.EntityFrameworkCore.Sqlite</code> w najnowszej wersji z gałęzi
+10.0.x.</p>
+<figure><img alt="Rys 5.4. Informacje o bibliotece i przyciski instalacji" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image90.png"/><figcaption>Rys 5.4. Informacje o bibliotece i przyciski instalacji</figcaption></figure>
+</div>
+<h2 id="zadanie-5-2-tworzenie-modelu-danych">Zadanie 5.2. Tworzenie modelu danych</h2>
+<p>Utwórz nową publiczną klasę, model danych, w folderze <code>Models/</code>, o nazwie
+<code>Movie</code>. Będzie musiała przechowywać informacje o filmach, ale
+jednocześnie będzie reprezentowana w systemie baz danych. Dodaj do niej
+następujące właściwości: identyfikator (<code>int</code>), tytuł (<code>string</code>), opis
+(<code>string</code>), ocena (<code>int</code>) oraz odwołanie/link do zwiastuna na platformie
+YouTube (<code>string</code>). Możesz je nazwać np. <code>Id</code>, <code>Title</code>, <code>Description</code>, <code>Rating</code>
+oraz <code>TrailerLink</code>.</p>
+<div class="warning alert alert-warning">
+<p>Jeżeli właściwość identyfikatora nie będzie nazywała się <code>Id</code>,
+należy dodać do niej (nad nią) atrybut <code>[Key]</code>, aby Entity Framework
+skorzystał z tego elementu do utworzenia klucza głównego.</p>
+</div>
+<div class="warning alert alert-warning">
+<p>Pamiętaj, aby to były <em>właściwości</em>, a nie pola, w przeciwnym razie EFCore nie
+będzie stanie z nich skorzystać!</p>
+</div>
+<p>Następnie, musisz dodać kolejną klasę, tym razem do folderu <code>Data</code>, który
+musisz ręcznie utworzyć, która będzie tzw. kontekstem danych, czyli
+klasą, która gromadzi wszystkie tabele bazodanowe, z których będzie
+korzystać aplikacje, oraz je opisywać. Nazwij ją <code>MoviesDbContext</code> i
+skorzystaj z następującego kodu (dodaj odpowiednie elementy do sekcji
+<code>using</code> w razie potrzeby):</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-csharp">public class MoviesDbContext : DbContext
+{
+    public DbSet&lt;Movie&gt; Movies { get; set; }
+
+    public MoviesDbContext(DbContextOptions options) : base(options)
+    {
+    }
+}
+</code></pre></div>
+<div class="warning alert alert-warning">
+<p>Bardzo ważne jest to, aby <code>DbSet&lt;T&gt;</code> był właściwością, a nie
+polem -- w innym przypadku biblioteka Entity Framework nie będzie mogła
+z niej skorzystać. Podobnie, klasa <code>Movie</code> musi być publiczna, ponieważ
+klasa <code>MoviesDbContext</code> jest publiczna!</p>
+</div>
+<h2 id="zadanie-5-3-sekrety-i-połączenie-do-bazy-danych">Zadanie 5.3. Sekrety i połączenie do bazy danych</h2>
+<p>W tym laboratorium wykorzystywany będzie system bazodanowy SQLite, który
+jest plikową bazą danych, gdzie wszystkie dane przechowywane są w
+pojedynczym pliku na serwerze, stąd kwestia bezpieczeństwa nie jest tak
+istotna -- w rzeczywistym świecie jednak aplikacje serwerowe potrzebują
+informacji dostępowych do bazy danych, które są tajne, np. jest nimi
+hasło i login, stąd nie mogą być przechowywane bezpośrednio w kodzie
+źródłowym -- oddzielenie tych informacji pozwala również na np. łatwe
+zmiany pomiędzy środowiskiem testowym i środowiskiem produkcyjnym. W
+ASP.NET Core będziemy wykorzystywali mechanizm sekretów aby przechować
+dane dostępowe do bazy danych.</p>
+<div class="variant vs2026 bg-primary-subtle">
+<p>Kliknij prawym przyciskiem myszy na projekcie i wybierz opcję „Manage User
+Secrets".</p>
+<figure><img alt="Rys 5.5. Opcja w menu kontekstowym" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image43.png"/><figcaption>Rys 5.5. Opcja w menu kontekstowym</figcaption></figure>
+<p>Spowoduje to uruchomienie edytora i otwarcie w nim pliku <code>secrets.json</code>.
+Plik ten jest przechowywany w profilu lokalnego użytkownika i chroniony
+mechanizmami systemu operacyjnego. W pliku <code>secrets.json</code> dodaj następujący
+kod:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>{
+  "ConnectionStrings": {
+    "Default": "Data Source=movies.db"
+  }
+}
+</code></pre></div>
+</div>
+<div class="variant vscode bg-secondary-subtle">
+<p>W głównym folderze swojego projektu wydaj komendę:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet user-secrets init
+</code></pre></div>
+<p>Spowoduje to utworzenie pliku „sekretów" w lokalnym folderze
+użytkownika. Następnie ustaw ciąg połączenia do bazy danych wydając
+komendę:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet user-secrets set ConnectionStrings:Default "Data Source=movies.db"
+</code></pre></div>
+</div>
+<div class="variant rider bg-success-subtle">
+<p>W menu kontekstowym projektu skorzystaj z opcji Tools -&gt; .NET User Secrets.</p>
+<figure><img alt="Rys 5.6. Opcja w menu kontekstowym" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image91.png"/><figcaption>Rys 5.6. Opcja w menu kontekstowym</figcaption></figure>
+<p>Spowoduje to uruchomienie edytora i otwarcie w nim pliku <code>secrets.json</code>.
+Plik ten jest przechowywany w profilu lokalnego użytkownika i chroniony
+mechanizmami systemu operacyjnego. W pliku <code>secrets.json</code> dodaj następujący
+kod:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>{
+  "ConnectionStrings": {
+    "Default": "Data Source=movies.db"
+  }
+}
+</code></pre></div>
+</div>
+<p>Ciąg wykorzystywany tutaj to tzw. „connection string" -- jest to mechanizm
+wykorzystywany przez wiele bibliotek .NET do określenia wszystkich parametrów
+połączenia z bazą danych, takich jak nazwa serwera, login użytkownika, hasło i
+tym podobne, z których dostawca SQLite wykorzystuje tylko nazwę pliku bazy
+danych. Mechanizm ten jest bardzo zbliżony do ciągów definiujących połączenie
+ODBC czy JDBC.</p>
+<p>Następnie, ostatnim krokiem będzie wykorzystanie tej wartości w
+programie. W pliku <code>Program.cs</code>, powyżej linijki <code>var app =
+builder.Build();</code> zarejestruj kontekst bazy danych oraz przekaż mu
+informację z konfiguracji, tj. nazwę ciągu <em>connection string</em>:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-csharp">builder.Services.AddDbContext&lt;MoviesDbContext&gt;(
+    options =&gt; options.UseSqlite(
+        builder.Configuration.GetConnectionString("Default"))
+);
+</code></pre></div>
+<p>Mechanizm ten wykorzystuje konfigurację -- jeżeli ciąg <em>connection
+string</em> o nazwie Default zostanie przekazany przez opcje programu,
+konfigurację w pliku <code>appsettings.json</code> lub zmienne środowiskowe, to
+zostanie wykorzystany -- jeżeli nie, to aplikacja spróbuje go
+automatycznie pobrać z lokalnych „sekretów".</p>
+<h2 id="zadanie-5-4-generowanie-kontrolera">Zadanie 5.4. Generowanie kontrolera</h2>
+<p>Wykorzystany w tym laboratorium będzie automatyczny generator,
+pozwalający na wygenerowanie kontrolera typu CRUD (Create, Read, Update,
+Delete) w stosunku do modelu bazodanowego, wraz ze wszystkimi akcjami.
+Usuń kontroler <code>HomeController.cs</code> w folderze <code>Controllers/</code> oraz cały
+folder <code>Views/Home/</code> (ale nie cały <code>Views</code>, tylko podfolder <code>Home</code>).</p>
+<div class="variant vs2026 bg-primary-subtle">
+<p>Kliknij prawym przyciskiem myszy na folderze Controllers w projekcie i
+wybierz opcję Add -&gt; Controller.</p>
+<figure><img alt="Rys 5.7. Opcja dodawania kontrolera" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image44.png"/><figcaption>Rys 5.7. Opcja dodawania kontrolera</figcaption></figure>
+<p>W kolejnym kroku wybierz szablon „MVC Controller with views, using
+Entity Framework".</p>
+<figure><img alt="Rys 5.8. Wybór szablonu kontrolera" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image45.png"/><figcaption>Rys 5.8. Wybór szablonu kontrolera</figcaption></figure>
+<p>W ostatnim kroku wybierz klasę modelu, klasę kontekstu danych, oraz
+nazwij generowany wynik <code>HomeController</code>.</p>
+<figure><img alt="Rys 5.9. Wybór parametrów generowania kontrolera" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image46.png"/><figcaption>Rys 5.9. Wybór parametrów generowania kontrolera</figcaption></figure>
+</div>
+<div class="variant vscode bg-secondary-subtle">
+<p>Wydaj w głównym folderze swojego projektu następujące komendy, aby zainstalować
+narzędzia generatora kodu:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design --version 10.0.*
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 10.0.*
+</code></pre></div>
+<p>A następnie wydaj komendę:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet aspnet-codegenerator controller -name HomeController -m Movie -dc MoviesDbContext -udl -sqlite -outDir Controllers
+</code></pre></div>
+</div>
+<div class="variant rider bg-success-subtle">
+<p>Kliknij prawym przyciskiem myszy na folderze Controllers w projekcie i
+wybierz opcję Add -&gt; Scaffolded Item...</p>
+<figure><img alt="Rys 5.10. Opcja dodawania generowanego elementu" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image92.png"/><figcaption>Rys 5.10. Opcja dodawania generowanego elementu</figcaption></figure>
+<p>W kolejnym kroku wybierz szablon „MVC Controller with views, using
+Entity Framework".</p>
+<figure><img alt="Rys 5.11. Wybór szablonu kontrolera" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image93.png"/><figcaption>Rys 5.11. Wybór szablonu kontrolera</figcaption></figure>
+<p>W ostatnim kroku wybierz klasę modelu, klasę kontekstu danych, oraz
+nazwij generowany wynik <code>HomeController</code>.</p>
+<figure><img alt="Rys 5.12. Wybór parametrów generowania kontrolera" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image94.png"/><figcaption>Rys 5.12. Wybór parametrów generowania kontrolera</figcaption></figure>
+</div>
+<p>Aplikacja jednak nie może się jeszcze uruchomić, ponieważ na tym etapie
+baza danych jeszcze nie istnieje i nie zawiera tabeli <code>Movies</code>. Aby
+utworzyć tabele skorzystamy z mechanizmu migracji. Także w Visual Studio
+wymaga to użycia narzędzi konsolowych, stąd otwórz okno konsoli opcją
+„Open in Terminal" z menu kontekstowego.</p>
+<p>Następnie, w oknie terminala (lub twojej otwartej konsoli w głównym
+folderze aplikacji) wydaj komendę:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet ef migrations add Initial
+</code></pre></div>
+<p>Spowoduje to wygenerowanie folderu <code>Migrations</code> i w nim klas
+odpowiedzialnych za migracje bazodanowe. Migracje to mechanizm
+utrzymywania informacji o zmianach w schemacie bazy danych, co pozwala
+zmieniać strukturę bazy danych utrzymując zmiany w kodzie.</p>
+<p>Następnie, utwórz bazę danych za pomocą komendy:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code>dotnet ef database update
+</code></pre></div>
+<p>Teraz, spróbuj uruchomić swoją aplikację i przetestuj, czy działają wszystkie
+opcje oraz czy działa system persystencji danych.</p>
+<figure><img alt="Rys 5.13. Przykład działania aplikacji" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image47.png"/><figcaption>Rys 5.13. Przykład działania aplikacji</figcaption></figure>
+<h2 id="zadanie-5-5-zmiana-formy-wprowadzania-danych">Zadanie 5.5. Zmiana formy wprowadzania danych</h2>
+<p>Jak możesz zauważyć, domyślnie wszystkie pola edytowania pól filmu
+wyświetlane są w taki sam sposób -- jako elementy HTML <code>&lt;input&gt;</code>.
+Chcielibyśmy zmienić to dla pola opisu filmu w taki sposób, aby
+wykorzystywany był element <code>&lt;textarea&gt;</code>. Jak możesz zauważyć, w
+<code>Views/Home/Create.cshtml</code> oraz <code>Views/Home/Edit.cshtml</code> wykorzystywany jest
+jawnie element <code>&lt;input&gt;</code> za pomocą mechanizmu <em>tag helpers</em>. Zmodyfikuj
+tę linię na wykorzystanie metody <code>EditorFor</code> w obydwu plikach widoku:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-csharp">@Html.EditorFor(m =&gt; m.Description)
+</code></pre></div>
+<p>Następnie, utwórz folder <code>EditorTemplates</code> w folderze <code>Views/Shared</code>
+(wielkość liter w nazwie ma znaczenie), a w nim utwórz plik (w Visual
+Studio możesz skorzystać z opcji Add -&gt; View -&gt; Razor View -- Empty) o
+nazwie <code>LongText.cshtml</code>.</p>
+<p>W pliku <code>LongText.cshtml</code> musimy zdefiniować jak będzie wyglądał edytor
+dla elementów, które będą oznaczone flagą <code>LongText</code> -- chcemy wykorzystać
+element <code>&lt;textarea&gt;</code> i można tutaj skorzystać z odpowiedniej metody
+klasy pomocniczej <code>Html</code>, która go wygeneruje, na przykład:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-csharp">@model string
+
+@Html.TextArea("", Model, new { cols = 40, rows = 10, @class="form-control" })
+</code></pre></div>
+<p>Dodatkowe parametry w metodzie <code>TextArea()</code> są przekazywane w postaci
+anonimowego obiektu i zostaną bezpośrednio zmapowane na atrybuty HTML --
+możesz zauważyć, że w C# można nazwać zmienne tak jak słowa kluczowe, o
+ile zostanie wykorzystany znak <code>@</code>, co spowoduje utworzenie atrybutu
+<code>class</code>, który jest niezbędny do określenia stylu elementu w bibliotece
+Bootstrap.</p>
+<p>Ostatnim krokiem jest zdefiniowanie, że konkretny atrybut modelu
+powinien korzystać z konkretnego szablonu edytora -- dodaj do pola opisu
+w swoim modelu atrybut <code>UIHint</code>:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-csharp">[UIHint("LongText")]
+</code></pre></div>
+<p>(może być wymagane dodanie <code>System.ComponentModel.DataAnnotations</code> do
+sekcji <code>using</code>)</p>
+<p>Teraz, edycja i tworzenie nowego filmu powinno wyglądać w następujący
+sposób:</p>
+<figure><img alt="Rys 5.14. Zaktualizowany formularz edycji i tworzenia filmu" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image48.png"/><figcaption>Rys 5.14. Zaktualizowany formularz edycji i tworzenia filmu</figcaption></figure>
+<h2 id="zadanie-5-6-zmiana-formy-wyświetlania-danych">Zadanie 5.6. Zmiana formy wyświetlania danych</h2>
+<p>Chcemy, aby ocena nie była wyświetlana jako liczba, a jako odpowiednia
+liczba „gwiazdek" na liście elementów.</p>
+<p>Dodaj do folderu <code>Views/Shared/</code> folder <code>DisplayTemplates</code>, a wewnątrz niego
+utwórz plik <code>Stars.cshtml</code> (ponownie korzystając z pustego szablonu).
+Teraz, możesz skorzystać z następującego kodu:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-csharp">@model int
+
+@for (int i = 0; i &lt; Model; i++)
+{
+    @Html.Raw("&amp;#x2606;")
+}
+</code></pre></div>
+<p>Następnie, dodaj do swojego modelu, do pola oceny filmu, atrybut <code>UIHint</code>,
+który spowoduje wykorzystanie odpowiedniego szablonu do wyświetlania:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-csharp">[UIHint("Stars")]
+</code></pre></div>
+<p>Od teraz ocena filmu powinna być wyświetlana w następujący sposób:</p>
+<figure><img alt="Rys 5.15. Przykładowe działanie aplikacji" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image49.png"/><figcaption>Rys 5.15. Przykładowe działanie aplikacji</figcaption></figure>
+<p>Spróbuj zmodyfikować ten sposób wyświetlania, aby wyświetlane były
+wypełnione lub gwiazdki uzupełniając wynik do maksymalnie 5, tak jak
+zaprezentowano na rysunku 5.16. Wykorzystaj encje HTML: <code>&amp;#x2606;</code> oraz
+<code>&amp;#x2605;</code> -- zauważ, że należy je przekazywać przez funkcję <code>Html.Raw()</code>
+lub można obejmować w znaczniki, np. <code>&lt;span&gt;</code>. Zastosuj atrybut HTML
+<code>title</code> do wyświetlenia oceny w formie liczbowej po najechaniu myszą na
+ocenę.</p>
+<figure><img alt="Rys 5.16. Oczekiwane działanie aplikacji" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image50.png"/><figcaption>Rys 5.16. Oczekiwane działanie aplikacji</figcaption></figure>
+<h2 id="zadanie-5-7-dodawanie-hiperłączy">Zadanie 5.7. Dodawanie hiperłączy</h2>
+<p>Zmodyfikuj aplikację w taki sposób, aby na liście filmów nie był
+prezentowany adres URL w formie tekstowej, ale aby było to hiperłącze
+prowadzące do danego adresu, o treści np. „Trailer", jak zaprezentowano
+na rysunku.</p>
+<div class="warning alert alert-warning">
+<p>Nie trzeba tutaj stosować oddzielnego <code>DisplayTemplate</code>, można bezpośrednio
+utworzyć hiperłącze w widoku. Oddzielne <code>DisplayTemplate</code> raczej stosowane będą
+gdy jest konieczność wielokrotnego używania tych samych sposobów wyświetlania.</p>
+</div>
+<figure><img alt="Rys 5.17. Oczekiwane działanie aplikacji" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image51.png"/><figcaption>Rys 5.17. Oczekiwane działanie aplikacji</figcaption></figure>
+<h2 id="zadanie-5-8-wyświetlanie-zwiastuna-jako-ramki-wewnętrznej">Zadanie 5.8. Wyświetlanie zwiastuna jako ramki wewnętrznej</h2>
+<p>W tym momencie zwiastun jest prezentowany jako odnośnik na ekranie
+szczegółów filmu -- chcemy jednak, aby był prezentowany w postaci
+elementu <code>&lt;iframe&gt;</code> i został osadzony na stronie, jak zaprezentowano na
+rysunku 5.18, poniżej.</p>
+<figure><img alt="Rys 5.18. Oczekiwane działanie aplikacji" src="https://ananke.cs.pollub.pl/aipwn-v5/media/image52.png"/><figcaption>Rys 5.18. Oczekiwane działanie aplikacji</figcaption></figure>
+<p>Możesz zauważyć, że do umieszczenia elementu <code>&lt;iframe&gt;</code> z odnośnikiem do
+filmu stosowany jest następujący kod HTML generowany przez platformę
+YouTube:</p>
+<div class="code-block-wrapper" style="position: relative;"><button class="btn btn-secondary copy-btn" title="Skopiuj kod" type="button">Kopiuj</button><pre class="codehilite"><code class="language-html">&lt;iframe width="640" height="360" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen&gt;&lt;/iframe&gt;
+</code></pre></div>
+<p>Spróbuj wykorzystać ten przykład zmieniając odpowiednio odnośnik (źródło
+ramki) np. przez przetworzenie <code>TrailerLink</code> przez odpowiednie wywołanie
+funkcji <code>Replace()</code> dla łańcuchów tekstowych do osiągnięcia oczekiwanego
+efektu.</p>
+<h2 id="zadanie-5-9-top-film">Zadanie 5.9. Top film</h2>
+<p>Dodaj do strony głównej (listy filmów) swojej aplikacji przycisk, która po
+kliknięciu przeniesie użytkownika do widoku szczegółów filmu, który ma
+największą ocenę.</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js"></script>
+
+<script>hljs.highlightAll();</script>
+
+<script>
+    // Copy-to-clipboard for code blocks
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.copy-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var code = btn.parentElement.querySelector('pre code');
+                if (code) {
+                    var text = code.innerText;
+                    navigator.clipboard.writeText(text).then(function() {
+                        btn.classList.add('copied');
+                        btn.textContent = 'Skopiowano!';
+                        setTimeout(function() {
+                            btn.classList.remove('copied');
+                            btn.textContent = 'Kopiuj';
+                        }, 1200)
+                        });
+                    };
+                });
+            })
+        });
+</script>
+
+<script>
+    // Smooth scroll for nav links
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.section-nav .nav-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                var targetId = link.getAttribute('href').slice(1);
+                var target = document.getElementById(targetId);
+                if (target) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: target.getBoundingClientRect().top + window.scrollY - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        // Highlight active nav link on scroll
+        var navLinks = document.querySelectorAll('.section-nav .nav-link');
+        var h2s = Array.from(document.querySelectorAll('.main-content h2'));
+        function onScroll() {
+            var scrollPos = window.scrollY + 90;
+            var current = h2s.findLast(h2 => h2.offsetTop <= scrollPos);
+            navLinks.forEach(l => l.classList.remove('active'));
+            if (current) {
+                var active = document.querySelector('.section-nav .nav-link[href="#' + current.id + '"]');
+                if (active) active.classList.add('active');
+            }
+        }
+        window.addEventListener('scroll', onScroll);
+        onScroll();
+    });
+</script>
+
+<script>
+    const toggle = document.getElementById('toggleDarkMode');
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        html.setAttribute('data-bs-theme', savedTheme);
+    }
+    toggle.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Step 1: Find consecutive sibling .variant divs (2 or more)
+  const allVariants = Array.from(document.querySelectorAll('div.variant'));
+  const groups = [];
+  let currentGroup = [];
+
+  for (let i = 0; i < allVariants.length; i++) {
+    const current = allVariants[i];
+    if (currentGroup.length === 0) {
+      currentGroup.push(current);
+    } else {
+      const prev = allVariants[i - 1];
+      // Are current and prev siblings, adjacent?
+      if (prev.nextElementSibling === current) {
+        currentGroup.push(current);
+      } else {
+        // end of current group, push if length >= 2
+        if (currentGroup.length >= 2) {
+          groups.push(currentGroup);
+        }
+        currentGroup = [current];
+      }
+    }
+  }
+  // Push last group if valid
+  if (currentGroup.length >= 2) groups.push(currentGroup);
+
+  // Step 2: Wrap each group inside a .variant-group div
+  groups.forEach(variantNodes => {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('variant-group');
+    const first = variantNodes[0];
+    first.parentNode.insertBefore(wrapper, first);
+    variantNodes.forEach(node => wrapper.appendChild(node));
+  });
+
+  // Step 3: Detect variants names (from first group)
+  const variantGroups = document.querySelectorAll('.variant-group');
+  if (variantGroups.length === 0) return; // no groups found
+
+  const variantNames = Array.from(variantGroups[0].querySelectorAll('.variant'))
+    .map(v => Array.from(v.classList).find(c => c !== 'variant'));
+
+  // Optional: nicer labels for variants
+  const variantLabelMap = {
+    'vs2026': 'Visual Studio 2026',
+    'vscode': 'VS Code',
+    'rider': 'Rider'
+  };
+
+  // Step 4: Create tabs HTML
+  function createTabsHTML(selectedVariant) {
+    const btns = variantNames.map(name => {
+      const activeClass = (name === selectedVariant) ? 'active' : '';
+      const label = variantLabelMap[name] || name;
+      return `<button type="button" class="btn btn-outline-primary ${activeClass}" data-variant="${name}">${label}</button>`;
+    }).join('');
+    return `<div class="btn-group mb-3 variant-tabs" role="group">${btns}</div>`;
+  }
+
+  // Step 5: Insert tabs above each variant-group
+  variantGroups.forEach(group => {
+    const selected = localStorage.getItem('selectedVariant') || variantNames[0];
+    const tabsContainer = document.createElement('div');
+    tabsContainer.innerHTML = createTabsHTML(selected);
+    group.insertBefore(tabsContainer.firstElementChild, group.firstChild);
+  });
+
+  // Step 6: Switch variant function (show/hide + update tabs)
+  function switchVariant(variantName) {
+    variantGroups.forEach(group => {
+      group.querySelectorAll('.variant').forEach(variant => {
+        variant.style.display = variant.classList.contains(variantName) ? '' : 'none';
+      });
+      const tabs = group.querySelector('.variant-tabs');
+      if (tabs) {
+        tabs.querySelectorAll('button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.variant === variantName);
+        });
+      }
+    });
+    localStorage.setItem('selectedVariant', variantName);
+  }
+
+  // Step 7: Handle clicks on tabs (event delegation)
+  document.body.addEventListener('click', e => {
+    if (e.target.matches('.variant-tabs button[data-variant]')) {
+      switchVariant(e.target.dataset.variant);
+    }
+  });
+
+  // Step 8: Initialize variants display
+  const initialVariant = localStorage.getItem('selectedVariant') || variantNames[0];
+  switchVariant(initialVariant);
+});
+</script>
+
+
+</body>
+</html>

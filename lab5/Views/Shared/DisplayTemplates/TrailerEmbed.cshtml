@@ -1,0 +1,18 @@
+@model string
+
+@{
+    var embedUrl = (Model ?? string.Empty)
+        .Replace("https://www.youtube.com/watch?v=", "https://www.youtube.com/embed/")
+        .Replace("http://www.youtube.com/watch?v=", "https://www.youtube.com/embed/")
+        .Replace("https://youtu.be/", "https://www.youtube.com/embed/")
+        .Replace("http://youtu.be/", "https://www.youtube.com/embed/");
+}
+
+@if (!string.IsNullOrWhiteSpace(embedUrl))
+{
+    <iframe width="640" height="360"
+            src="@embedUrl"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+}
